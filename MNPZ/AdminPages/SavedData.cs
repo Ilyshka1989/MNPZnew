@@ -1,33 +1,24 @@
 ﻿using MNPZ.AdminPages;
+using MNPZ.DAL.Models;
 using MNPZ.DAO;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Data.SqlClient;
-using System.Drawing;
-using System.Linq;
-using System.Runtime.ConstrainedExecution;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
 
 namespace MNPZ
 {
     public partial class SavedData : Form
     {
-        List<User> users = new List<User>();
-        List<OperationVm> operations = new List<OperationVm>();
-        OperationContext opContext = new OperationContext();
-        UserContext userContext = new UserContext();
+        private IEnumerable<Operation> operations;
+        private readonly OperationRepository _opContext;
+
         public SavedData()
         {
+            _opContext = new OperationRepository();
             InitializeComponent();
-            InitialUsers();
             InitialView();
             InitialDataGrid();
-            var user = (User)AppDomain.CurrentDomain.GetData("userTb");
+            var user = (User)AppDomain.CurrentDomain.GetData("User");
             if (user == null)
             {
                 LoginPage obj = new LoginPage();
@@ -59,20 +50,16 @@ namespace MNPZ
         }
         private void InitialDataGrid()
         {
-           dataGridView1.DataSource = operations.ToArray();
+            dataGridView1.DataSource = operations;
         }
         private void InitialView()
         {
-            operations = opContext.SelectAllOperations();
-        }
-        private void InitialUsers()
-        {
-            users = userContext.SelectAllUsers(true);
+            operations = _opContext.SelectAllOperations();
         }
 
         private void label4_Click(object sender, EventArgs e)
         {
-            AppDomain.CurrentDomain.SetData("userTb", null);
+            AppDomain.CurrentDomain.SetData("User", null);
             LoginPage obj = new LoginPage();
             obj.Show();
             this.Hide();

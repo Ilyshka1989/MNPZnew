@@ -1,7 +1,5 @@
-﻿using MNPZ.DAO;
+﻿using MNPZ.DAL.Repositories;
 using System;
-using System.Data;
-using System.Data.SqlClient;
 using System.Linq;
 using System.Windows.Forms;
 
@@ -9,28 +7,31 @@ namespace MNPZ
 {
     public partial class LoginPage : Form
     {
+        private readonly UserRepository _userRepository;
+
         public LoginPage()
         {
+            _userRepository = new UserRepository();
             InitializeComponent();
             CheckUsers();
         }
-        UserContext userContext = new UserContext();
+
         private void button1_Click(object sender, EventArgs e)
         {
-            var user = userContext.SelectUserBy(true, login.Text);
+            var user = _userRepository.SelectUserBy(true, login.Text);
             if (user == null)
             {
-                MessageBox.Show("Не правильный логин или пароль");
+                MessageBox.Show("Неправильный логин или пароль");
             }
             else
             {
                 if (user.Password != pass.Text)
                 {
-                    MessageBox.Show("Не правильный логин или пароль");
+                    MessageBox.Show("Неправильный логин или пароль");
                 }
                 else
                 {
-                    AppDomain.CurrentDomain.SetData("userTb", user);
+                    AppDomain.CurrentDomain.SetData("User", user);
                     if (user.IsOperator)
                     {
                         OperatorPage obj = new OperatorPage();
@@ -49,10 +50,10 @@ namespace MNPZ
 
         private void CheckUsers()
         {
-            var users = userContext.SelectAllUsers();
+            var users = _userRepository.SelectAllUsers();
             if (users.Count() == 0)
             {
-                var check = userContext.InsertUser("q", "root Admin", "q", false);
+                var check = _userRepository.InsertUser("q", "root Admin", "q", false);
             }
         }
     }

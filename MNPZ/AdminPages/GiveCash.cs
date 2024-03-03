@@ -1,26 +1,27 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Data.SqlClient;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Web.UI.WebControls;
-using System.Windows.Forms;
-using MNPZ;
+﻿using MNPZ.DAL.Models;
+using MNPZ.DAL.Repositories;
 using MNPZ.DAO;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Windows.Forms;
 
 namespace MNPZ.AdminPages
 {
     public partial class GiveCash : Form
     {
+        private readonly UserRepository _userRepository;
+        private readonly OperationRepository _operationRepository;
+
+        public List<User> Users { get; set; }
+
         public GiveCash()
         {
+            _userRepository = new UserRepository();
+            _operationRepository = new OperationRepository();
             InitializeComponent();
             InitialOperators();
-            var user = (User)AppDomain.CurrentDomain.GetData("userTb");
+            var user = (User)AppDomain.CurrentDomain.GetData("User");
             if (user == null)
             {
                 LoginPage obj = new LoginPage();
@@ -29,10 +30,6 @@ namespace MNPZ.AdminPages
             }
             else this.Text = "Администратор " + user.UserName;
         }
-        UserContext userContext = new UserContext();
-        List<User> users = new List<User>();
-
-        
 
         private void label1_Click(object sender, EventArgs e)
         {
@@ -69,30 +66,33 @@ namespace MNPZ.AdminPages
                     var eur = Convert.ToDecimal(textBox3.Text);
                     var rub = Convert.ToDecimal(textBox4.Text);
                     var now = DateTime.Now;
-                    var id = users.First(x => x.UserName == comboBox1.SelectedValue.ToString()).Id;
+                    var id = Users.First(x => x.UserName == comboBox1.SelectedValue.ToString()).Id;
 
-                    var op = new Operation();
-                    var opEx = new OperationEx();
+                    var balances = new List<BaseBalanceItem>()
+                    {
+                        new BaseBalanceItem()
+                        {
+                            Balance = byn,
+                            Currency = Currency.BYN
+                        },
+                        new BaseBalanceItem()
+                        {
+                            Balance = usd,
+                            Currency = Currency.USD
+                        } ,
+                        new BaseBalanceItem()
+                        {
+                            Balance = eur,
+                            Currency = Currency.EUR
+                        } ,
+                        new BaseBalanceItem()
+                        {
+                            Balance = rub,
+                            Currency = Currency.RUB
+                        }
+                    };
 
-                    op.UserId = id;
-                    op.DateOperation = DateTime.Now;
-                    op.Cur_in_num = CurrencyNumber.BYN;
-                    op.Cost = byn;
-                    op.IsExchange = false;
-                    opEx.SaveOperation(op);
-
-                    op.Cur_in_num = CurrencyNumber.USD;
-                    op.Cost = usd;
-                    opEx.SaveOperation(op);
-
-                    op.Cur_in_num = CurrencyNumber.EUR;
-                    op.Cost = eur;
-                    opEx.SaveOperation(op);
-
-                    op.Cur_in_num = CurrencyNumber.RUB;
-                    op.Cost = rub;
-                    opEx.SaveOperation(op);
-
+                    _operationRepository.AddFundsToUserBalance(id, balances);
 
                     ClearTextBox();
                 }
@@ -111,15 +111,15 @@ namespace MNPZ.AdminPages
         }
         private void InitialOperators()
         {
-            users = userContext.SelectAllUsers(true);
+            Users = _userRepository.SelectAllUsers(true);
 
-            var names = users.Select(x => x.UserName).ToArray();
+            var names = Users.Select(x => x.UserName).ToArray();
             comboBox1.DataSource = names;
         }
 
         private void label4_Click(object sender, EventArgs e)
         {
-            AppDomain.CurrentDomain.SetData("userTb", null);
+            AppDomain.CurrentDomain.SetData("User", null);
             LoginPage obj = new LoginPage();
             obj.Show();
             this.Hide();

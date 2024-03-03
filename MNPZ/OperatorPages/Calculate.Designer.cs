@@ -199,7 +199,7 @@
             this.InputSel.Name = "InputSel";
             this.InputSel.Size = new System.Drawing.Size(104, 20);
             this.InputSel.TabIndex = 28;
-            this.InputSel.TextChanged += new System.EventHandler(this.InputSel_TextChanged);
+            this.InputSel.LostFocus += new System.EventHandler(this.InputSel_TextChanged);
             // 
             // wannaCost
             // 
@@ -209,7 +209,7 @@
             this.wannaCost.Name = "wannaCost";
             this.wannaCost.Size = new System.Drawing.Size(104, 20);
             this.wannaCost.TabIndex = 26;
-            this.wannaCost.TextChanged += new System.EventHandler(this.EurInput_TextChanged);
+            this.wannaCost.LostFocus += new System.EventHandler(this.EurInput_TextChanged);
             // 
             // freeMoney
             // 

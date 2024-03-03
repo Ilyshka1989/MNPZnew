@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MNPZ.DAL.Models;
+using System;
 using System.Windows.Forms;
 
 namespace MNPZ
@@ -8,7 +9,7 @@ namespace MNPZ
         public OperatorPage()
         {
             InitializeComponent();
-            var user = (User)AppDomain.CurrentDomain.GetData("userTb");
+            var user = (User)AppDomain.CurrentDomain.GetData("user");
             if (user == null)
             {
                 LoginPage obj = new LoginPage();
@@ -41,10 +42,15 @@ namespace MNPZ
 
         private void label7_Click(object sender, EventArgs e)
         {
-            AppDomain.CurrentDomain.SetData("userTb", null);
+            AppDomain.CurrentDomain.SetData("user", null);
             LoginPage obj = new LoginPage();
             obj.Show();
             this.Hide();
+        }
+
+        private void label5_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }

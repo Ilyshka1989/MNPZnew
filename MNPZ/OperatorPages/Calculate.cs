@@ -1,56 +1,53 @@
-﻿
+﻿using MNPZ.DAL.Models;
+using MNPZ.DAL.Repositories;
 using MNPZ.DAO;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Data.SqlClient;
 using System.Drawing;
 using System.Linq;
-using System.Security.Policy;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace MNPZ
 {
     public partial class Calculate : Form
     {
-
         User user = new User();
-        List<Operation> operations = new List<Operation>();
-        OperationContext operationContext = new OperationContext();
+        readonly OperationRepository _operationRepository;
         List<string> comboSelIn = new List<string>();
         List<string> comboSelOut = new List<string>();
-        List<Money> moneyList = new List<Money>();
-        MoneyContext moneyContext = new MoneyContext();
+        IEnumerable<Rate> moneyList = new List<Rate>();
+        RateRepository moneyContext = new RateRepository();
+        private IEnumerable<BaseBalanceItem> balances;
+
         public Calculate()
         {
+            _operationRepository = new OperationRepository();
             InitializeComponent();
-            user = (User)AppDomain.CurrentDomain.GetData("userTb");
+            user = (User)AppDomain.CurrentDomain.GetData("User");
             if (user == null)
             {
                 LoginPage obj = new LoginPage();
                 obj.Show();
                 this.Hide();
             }
-            else this.Text = "Оператор " + user.UserName;
+            else this.Text = $"Оператор {user.UserName}";
             Clear();
             LoadOperationsDb();
             LoadExchangeDb();
             comboBox4.DataSource = comboSelIn;
             comboBox1.DataSource = comboSelOut;
+
+
         }
 
         private void button3_Click(object sender, EventArgs e)
         {
             decimal inputCost = 0, outputCost = 0, ostatok = 0;
-            CurrencyNumber curIn;
-            Enum.TryParse<CurrencyNumber>(comboBox4.SelectedValue.ToString(), out curIn);
-            CurrencyNumber curOut;
-            Enum.TryParse<CurrencyNumber>(comboBox1.SelectedValue.ToString(), out curOut);
-            if(InputSel.Text.Length > 0)
+            Currency curIn;
+            Enum.TryParse<Currency>(comboBox4.SelectedValue.ToString(), out curIn);
+            Currency curOut;
+            Enum.TryParse<Currency>(comboBox1.SelectedValue.ToString(), out curOut);
+            if (InputSel.Text.Length > 0)
                 inputCost = Convert.ToDecimal(InputSel.Text);
             if (wannaCost.Text.Length > 0)
                 outputCost = Convert.ToDecimal(wannaCost.Text);
@@ -58,13 +55,13 @@ namespace MNPZ
             {
                 if (outputCost > 0)
                 {
-                    var checkCur = moneyList.LastOrDefault(x => x.Cur_num_in == curIn && x.Cur_num_out == curOut);
+                    var checkCur = moneyList.LastOrDefault(x => x.CurIn == curIn && x.CurOut == curOut);
                     if (curIn == curOut)
                     {
                         if (inputCost > outputCost)
                         {
                             ostatok = inputCost - outputCost;
-                            SaveOperation(curIn, curOut, inputCost, outputCost);
+                            SaveOperation(curIn, curOut, inputCost, outputCost, ostatok, checkCur.CurOutAmount);
                             ClearInput();
                         }
                         else
@@ -74,14 +71,14 @@ namespace MNPZ
                     }
                     if (checkCur == null)
                     {
-                        checkCur = moneyList.LastOrDefault(x => x.Cur_num_in == curOut && x.Cur_num_out == curIn);
+                        checkCur = moneyList.LastOrDefault(x => x.CurIn == curOut && x.CurOut == curIn);
                         if (checkCur == null)
                         {
                             MessageBox.Show("Невозможно совершить обмен без указаных курсов! Обратитесь к Администратору");
                         }
                         else
                         {
-                            var valueIn = inputCost * checkCur.Cur_in;
+                            var valueIn = inputCost * checkCur.CurInAmount;
                             if (valueIn > outputCost)
                             {
                                 MessageBox.Show("Неверно указанны суммы, проверьте значения!");
@@ -89,14 +86,14 @@ namespace MNPZ
                             else
                             {
                                 ostatok = outputCost - valueIn;
-                                SaveOperation(curIn, curOut,inputCost,valueIn);
+                                SaveOperation(curIn, curOut, inputCost, valueIn, ostatok, checkCur.CurOutAmount);
                                 ClearInput();
                             }
                         }
-                        }
+                    }
                     else
                     {
-                        var valueIn = outputCost * checkCur.Cur_out;
+                        var valueIn = outputCost * checkCur.CurOutAmount;
                         if (valueIn > inputCost)
                         {
                             MessageBox.Show("Неверно указанны суммы, проверьте значения!");
@@ -104,7 +101,7 @@ namespace MNPZ
                         else
                         {
                             ostatok = inputCost - valueIn;
-                            SaveOperation(curIn, curOut, valueIn, outputCost);
+                            SaveOperation(curIn, curOut, inputCost, outputCost, ostatok, checkCur.CurOutAmount);
                             ClearInput();
                         }
                     }
@@ -123,26 +120,43 @@ namespace MNPZ
             var usd = Convert.ToDecimal(OstUsd.Text);
             var rub = Convert.ToDecimal(OstRUB.Text);
 
-            if (byn > 0)
-                SaveOperation(CurrencyNumber.BYN, null, -byn, null, isExch: false);
-            if (eur > 0)
-                SaveOperation(CurrencyNumber.EUR, null, -eur, null, isExch: false);
-            if (usd > 0)
-                SaveOperation(CurrencyNumber.USD, null, -usd, null, isExch: false);
-            if (rub > 0)
-                SaveOperation(CurrencyNumber.RUB, null, -rub, null, isExch: false);
+            var balances = new List<BaseBalanceItem>()
+            {
+                new BaseBalanceItem()
+                {
+                    Balance = -byn,
+                    Currency = Currency.BYN
+                },
+                new BaseBalanceItem()
+                {
+                    Balance = -usd,
+                    Currency = Currency.USD
+                } ,
+                new BaseBalanceItem()
+                {
+                    Balance = -eur,
+                    Currency = Currency.EUR
+                } ,
+                new BaseBalanceItem()
+                {
+                    Balance = -rub,
+                    Currency = Currency.RUB
+                }
+            };
+
+            _operationRepository.AddFundsToUserBalance(user.Id, balances);
             ClearInput();
         }
         private void LoadOperationsDb()
         {
-            operations = operationContext.SelectAllOperations(user.Id); 
-            if (operations.Count != 0)
+            var balances = _operationRepository.GetUserBalances(user.Id);
+
+            if (balances != null && balances.Any())
             {
-                var opers = operations.Where(x => x.Cur_in_num == CurrencyNumber.BYN);
-                OstBYN.Text = (operations.Where(x => x.Cur_in_num == CurrencyNumber.BYN).Sum(x => x.Cost)).ToString();
-                OstEUR.Text = (operations.Where(x => x.Cur_in_num == CurrencyNumber.EUR).Sum(x => x.Cost)).ToString();
-                OstUsd.Text = (operations.Where(x => x.Cur_in_num == CurrencyNumber.USD).Sum(x => x.Cost)).ToString();
-                OstRUB.Text = (operations.Where(x => x.Cur_in_num == CurrencyNumber.RUB).Sum(x => x.Cost)).ToString();
+                OstBYN.Text = balances.FirstOrDefault(x => x.Currency == Currency.BYN)?.Balance.ToString() ?? string.Empty;
+                OstEUR.Text = balances.FirstOrDefault(x => x.Currency == Currency.EUR)?.Balance.ToString() ?? string.Empty;
+                OstUsd.Text = balances.FirstOrDefault(x => x.Currency == Currency.USD)?.Balance.ToString() ?? string.Empty;
+                OstRUB.Text = balances.FirstOrDefault(x => x.Currency == Currency.RUB)?.Balance.ToString() ?? string.Empty;
             }
         }
         private void NotCanExchange()
@@ -165,7 +179,7 @@ namespace MNPZ
             }
             if (OstUsd.Text == "0")
                 OstUsd.ForeColor = Color.Red;
-            else 
+            else
             {
                 OstUsd.ForeColor = Color.Green;
                 comboSelIn.Add("USD");
@@ -173,7 +187,7 @@ namespace MNPZ
             }
             if (OstEUR.Text == "0")
                 OstEUR.ForeColor = Color.Red;
-            else 
+            else
             {
                 OstEUR.ForeColor = Color.Green;
                 comboSelIn.Add("EUR");
@@ -198,40 +212,36 @@ namespace MNPZ
         }
         private void LoadExchangeDb()
         {
-            moneyList = moneyContext.SelectAllMoneyNoVm();
+            moneyList = moneyContext.SelectAllRates();
             NotCanExchange();
         }
         private void SaveOperation(
-            CurrencyNumber curIn,
-            CurrencyNumber? curOut,
+            Currency curIn,
+            Currency curOut,
             decimal costIn,
-            decimal? costOut,
+            decimal costOut,
+            decimal remainder,
+            decimal rate,
             bool isExch = true)
         {
-            var op = new Operation();
-            var opEx = new OperationEx();
-
-            op.UserId = user.Id;
-            op.DateOperation = DateTime.Now;
-            op.Cur_in_num = curIn;
-            op.Cur_out_num = curOut;
-            op.Cost = costIn;
-            op.IsExchange = isExch;
-            opEx.SaveOperation(op);
-            if (costOut.HasValue)
+            var op = new Operation()
             {
-                op.UserId = user.Id;
-                op.DateOperation = DateTime.Now;
+                Date = DateTime.Now,
+                CurrencyOut = curOut,
+                OutAmount = costOut,
+                Remainder = remainder,
+                ExchangeRate = rate,
+                IsExchange = isExch,
+                InAmount = costIn,
+                CurrencyIn = curIn,
+                UserId = user.Id
 
-                if (curOut.HasValue)
-                op.Cur_in_num = curOut.Value;
+            };
 
-                op.Cur_out_num = curIn;
-                op.Cost = -costOut.Value;
-                op.IsExchange = isExch;
-                opEx.SaveOperation(op);
-            }
-            
+            _operationRepository.InsertOperation(op);
+
+
+
         }
 
         private void InputSel_TextChanged(object sender, EventArgs e)
@@ -253,94 +263,102 @@ namespace MNPZ
         {
             OutRate.Text = MakeMessage();
         }
-        private string EnumName(CurrencyNumber cur)
+        private string EnumName(Currency cur)
         {
-            return Enum.GetName(typeof(CurrencyNumber), cur);
+            return Enum.GetName(typeof(Currency), cur);
         }
         private string MakeMessage()
         {
             string message = "";
             decimal inputCost = 0, outputCost = 0, ostatok = 0;
-            CurrencyNumber curIn;
-            Enum.TryParse<CurrencyNumber>(comboBox4.SelectedValue.ToString(), out curIn);
-            CurrencyNumber curOut;
-            Enum.TryParse<CurrencyNumber>(comboBox1.SelectedValue.ToString(), out curOut);
-            if (InputSel.Text.Length > 0)
-                inputCost = Convert.ToDecimal(InputSel.Text);
-            if (wannaCost.Text.Length > 0)
-                outputCost = Convert.ToDecimal(wannaCost.Text);
-            if (inputCost > 0)
-            {
-                if (outputCost > 0)
-                {
-                    var checkCur = moneyList.LastOrDefault(x => x.Cur_num_in == curIn && x.Cur_num_out == curOut);
-                    if (curIn == curOut)
-                    {
-                        if (inputCost > outputCost)
-                        {
-                            message = "Размен возможен";
 
-                        }
-                        else
-                        {
-                            MessageBox.Show("Невозможно совершить обмен с меньшей суммы на большую!");
-                        }
-                    }
-                    if (checkCur == null)
+            if (!string.IsNullOrEmpty(comboBox4.SelectedValue?.ToString()) &&
+                !string.IsNullOrEmpty(comboBox1.SelectedValue?.ToString()) &&
+                !string.IsNullOrEmpty(InputSel.Text) &&
+                !string.IsNullOrEmpty(wannaCost.Text))
+            {
+                Enum.TryParse<Currency>(comboBox4.SelectedValue.ToString(), out var curIn);
+                Enum.TryParse<Currency>(comboBox1.SelectedValue.ToString(), out var curOut);
+
+                if (InputSel.Text.Length > 0)
+                    inputCost = Convert.ToDecimal(InputSel.Text);
+                if (wannaCost.Text.Length > 0)
+                    outputCost = Convert.ToDecimal(wannaCost.Text);
+
+                if (inputCost > 0)
+                {
+                    if (outputCost > 0)
                     {
-                        checkCur = moneyList.LastOrDefault(x => x.Cur_num_in == curOut && x.Cur_num_out == curIn);
+                        var checkCur = moneyList.LastOrDefault(x => x.CurIn == curIn && x.CurOut == curOut);
+                        if (curIn == curOut)
+                        {
+                            if (inputCost > outputCost)
+                            {
+                                message = "Размен возможен";
+
+                            }
+                            else
+                            {
+                                MessageBox.Show("Невозможно совершить обмен с меньшей суммы на большую!");
+                            }
+                        }
                         if (checkCur == null)
                         {
-                            message = "Курсы для данной валюты не установлены!";
+                            checkCur = moneyList.LastOrDefault(x => x.CurIn == curOut && x.CurOut == curIn);
+                            if (checkCur == null)
+                            {
+                                message = "Курсы для данной валюты не установлены!";
+                            }
+                            else
+                            {
+                                var valueIn = inputCost * checkCur.CurInAmount;
+                                if (valueIn > outputCost)
+                                {
+                                    message = "Недостаточно средств для обмена!";
+                                }
+                                else
+                                {
+                                    ostatok = outputCost - valueIn;
+                                    message = "Обмен возможен, сдача будет равна: " + ostatok.ToString();
+                                }
+                            }
                         }
                         else
                         {
-                            var valueIn = inputCost * checkCur.Cur_in;
-                            if (valueIn > outputCost)
+                            var valueIn = outputCost * checkCur.CurOutAmount;
+                            if (valueIn > inputCost)
                             {
                                 message = "Недостаточно средств для обмена!";
                             }
                             else
                             {
-                                ostatok = outputCost - valueIn;
+                                ostatok = inputCost - valueIn;
                                 message = "Обмен возможен, сдача будет равна: " + ostatok.ToString();
                             }
                         }
                     }
-                    else
+                    if (ostatok > 0)
                     {
-                        var valueIn = outputCost * checkCur.Cur_out;
-                        if (valueIn > inputCost)
-                        {
-                            message = "Недостаточно средств для обмена!";
-                        }
-                        else
-                        {
-                            ostatok = inputCost - valueIn;
-                            message = "Обмен возможен, сдача будет равна: " + ostatok.ToString();
-                        }
+                        freeMoney.Text = ostatok.ToString();
                     }
                 }
-                if (ostatok > 0)
-                {
-                    freeMoney.Text = ostatok.ToString();
-                }
             }
-                return message;
+
+            return message;
         }
         private void DisableInput()
         {
-            CurrencyNumber curIn;
-            Enum.TryParse<CurrencyNumber>(comboBox4.SelectedValue.ToString(), out curIn);
-            var curCheckUsd = moneyList.LastOrDefault(x => x.Cur_num_in == curIn && x.Cur_num_out == CurrencyNumber.USD);
+            Currency curIn;
+            Enum.TryParse<Currency>(comboBox4.SelectedValue.ToString(), out curIn);
+            var curCheckUsd = moneyList.LastOrDefault(x => x.CurIn == curIn && x.CurOut == Currency.USD);
 
-            var curCheckEur = moneyList.LastOrDefault(x => x.Cur_num_in == curIn && x.Cur_num_out == CurrencyNumber.EUR);
-            var curCheckRub = moneyList.LastOrDefault(x => x.Cur_num_in == curIn && x.Cur_num_out == CurrencyNumber.RUB);
+            var curCheckEur = moneyList.LastOrDefault(x => x.CurIn == curIn && x.CurOut == Currency.EUR);
+            var curCheckRub = moneyList.LastOrDefault(x => x.CurIn == curIn && x.CurOut == Currency.RUB);
         }
 
         private void label7_Click(object sender, EventArgs e)
         {
-            AppDomain.CurrentDomain.SetData("userTb", null);
+            AppDomain.CurrentDomain.SetData("User", null);
             LoginPage obj = new LoginPage();
             obj.Show();
             this.Hide();

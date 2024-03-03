@@ -1,17 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using MNPZ.AdminPages;
+using MNPZ.DAL.Models;
+using MNPZ.DAL.Repositories;
+using System;
 using System.Windows.Forms;
-using System.Data.SqlClient;
-using System.Web.UI.WebControls;
-using MNPZ.AdminPages;
-using MNPZ.DAO;
 
 namespace MNPZ
 {
@@ -21,16 +12,16 @@ namespace MNPZ
         {
             InitializeComponent();
             DisplayUser();
-            var user = (User)AppDomain.CurrentDomain.GetData("userTb");
+            var user = (User)AppDomain.CurrentDomain.GetData("User");
             if (user == null)
             {
                 LoginPage obj = new LoginPage();
                 obj.Show();
                 this.Hide();
             }
-            else this.Text = "Администратор " +user.UserName;
+            else this.Text = "Администратор " + user.UserName;
         }
-        UserContext userContext = new UserContext();
+        UserRepository _userRepository = new UserRepository();
         private void Reset()
         {
             isOperator.Enabled = false;
@@ -40,7 +31,7 @@ namespace MNPZ
         }
         private void DisplayUser()
         {
-            var users = userContext.SelectAllUsers();
+            var users = _userRepository.SelectAllUsers();
             dataGridView1.DataSource = users.ToArray();
         }
         private void label2_Click(object sender, EventArgs e)
@@ -62,7 +53,8 @@ namespace MNPZ
             if (Name.Text == "")
             {
                 MessageBox.Show("Не указано имя пользователя!");
-            } else if ( Login.Text == "")
+            }
+            else if (Login.Text == "")
             {
                 MessageBox.Show("Не указан логин пользователя!");
             }
@@ -72,7 +64,7 @@ namespace MNPZ
             }
             else
             {
-                var insertUser = userContext.InsertUser(Login.Text,Name.Text,Password.Text, isOperator.Checked);
+                var insertUser = _userRepository.InsertUser(Login.Text, Name.Text, Password.Text, isOperator.Checked);
 
                 MessageBox.Show(insertUser.Message);
 
@@ -99,7 +91,7 @@ namespace MNPZ
             }
             else
             {
-                var deleteUser = userContext.DeleteUserById(UserId);
+                var deleteUser = _userRepository.DeleteUserById(UserId);
                 MessageBox.Show(deleteUser.Message);
                 DisplayUser();
                 Reset();
@@ -114,7 +106,7 @@ namespace MNPZ
             }
             else
             {
-                var deleteUser = userContext.UpdateUserById(UserId,Login.Text,Name.Text,Password.Text,isOperator.Checked);
+                var deleteUser = _userRepository.UpdateUserById(UserId, Login.Text, Name.Text, Password.Text, isOperator.Checked);
                 MessageBox.Show(deleteUser.Message);
                 DisplayUser();
                 Reset();
@@ -129,11 +121,11 @@ namespace MNPZ
 
         private void label4_Click(object sender, EventArgs e)
         {
-            AppDomain.CurrentDomain.SetData("userTb", null);
+            AppDomain.CurrentDomain.SetData("User", null);
             LoginPage obj = new LoginPage();
             obj.Show();
             this.Hide();
         }
-    } 
     }
+}
 

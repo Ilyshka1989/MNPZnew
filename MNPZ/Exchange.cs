@@ -1,15 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace MNPZ
+﻿namespace MNPZ
 {
-    public class Rates
-    {
-        public IList<Exchange> exchang;
-    }
     public class Exchange
     {
         public string USD_in { get; set; }
@@ -58,58 +48,5 @@ namespace MNPZ
         public string name { get; set; }
         public string name_type { get; set; }
     }
-    public enum CurrencyNumber
-    {
-        BYN = 0,
-        USD = 1,
-        EUR = 2,
-        RUB = 3
-    }
-    public class User
-    {
-        public int Id { get; set; }
-        public string UserName { get; set; }
-        public string Login { get; set; }
-        public string Password { get; set; }
-        public bool IsOperator { get; set; } = false;
-    }
-    public class Operation
-    {
-        public int Id { get; set; }
-        public int UserId { get; set; }
-        public string UserName { get; set; }
-        public DateTime DateOperation { get; set; }
-        public decimal Cost { get; set; }
-        public CurrencyNumber Cur_in_num { get; set; }
-        public CurrencyNumber? Cur_out_num { get; set; }
-        public bool IsExchange { get; set; }
-    }
-    public class OperationVm
-    {
-        public string Имя_пользователя { get; set; }
-        public DateTime Дата { get; set; }
-        public decimal Сумма { get; set; }
-        public string Валюта_In { get; set; }
-        public string Валюта_Out { get; set; }
-        public bool Был_Ли_Обмен { get; set; }
-    }
-    public class Money
-    {
-        public decimal Cur_in { get; set; }
-        public decimal Cur_out { get; set; }
-        public CurrencyNumber Cur_num_in { get; set; }
-        public CurrencyNumber? Cur_num_out { get; set; }
-    }
-    public class MoneyVm
-    {
-        public decimal Сумма_In { get; set; }
-        public decimal Сумма_Out { get; set; }
-        public string Валюта_In { get; set; }
-        public string Валюта_Out { get; set; }
-    }
-    public class SqlInfo
-    {
-        public bool IsError { get; set; }
-        public string Message { get; set; }
-    }
+
 }
