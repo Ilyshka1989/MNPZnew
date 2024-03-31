@@ -66,7 +66,7 @@ namespace MNPZ
                         }
                         else
                         {
-                            MessageBox.Show("Невозможно совершить обмен с меньшей суммы на большую!");
+                            MessageBox.Show("Невозможно совершить обмен с меньшей суммы на большую!", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         }
                     }
                     if (checkCur == null)
@@ -74,14 +74,14 @@ namespace MNPZ
                         checkCur = moneyList.LastOrDefault(x => x.CurIn == curOut && x.CurOut == curIn);
                         if (checkCur == null)
                         {
-                            MessageBox.Show("Невозможно совершить обмен без указаных курсов! Обратитесь к Администратору");
+                            MessageBox.Show("Невозможно совершить обмен без указаных курсов! Обратитесь к Администратору", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         }
                         else
                         {
                             var valueIn = inputCost * checkCur.CurInAmount;
-                            if (valueIn > outputCost)
+                            if (valueIn < outputCost)
                             {
-                                MessageBox.Show("Неверно указанны суммы, проверьте значения!");
+                                MessageBox.Show("Неверно указанны суммы, проверьте значения!", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
                             }
                             else
                             {
@@ -93,14 +93,14 @@ namespace MNPZ
                     }
                     else
                     {
-                        var valueIn = outputCost * checkCur.CurOutAmount;
-                        if (valueIn > inputCost)
+                        var valueWont = outputCost / checkCur.CurInAmount;
+                        if (inputCost < valueWont)
                         {
-                            MessageBox.Show("Неверно указанны суммы, проверьте значения!");
+                            MessageBox.Show("Неверно указанны суммы, проверьте значения!", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         }
                         else
                         {
-                            ostatok = inputCost - valueIn;
+                            ostatok = inputCost - valueWont;
                             SaveOperation(curIn, curOut, inputCost, outputCost, ostatok, checkCur.CurOutAmount);
                             ClearInput();
                         }
@@ -108,7 +108,8 @@ namespace MNPZ
                 }
                 if (ostatok > 0)
                 {
-                    freeMoney.Text = ostatok.ToString();
+                   
+                    freeMoney.Text = Math.Round(ostatok, 2).ToString();
                 }
             }
         }
@@ -299,7 +300,7 @@ namespace MNPZ
                             }
                             else
                             {
-                                MessageBox.Show("Невозможно совершить обмен с меньшей суммы на большую!");
+                                MessageBox.Show("Невозможно совершить обмен с меньшей суммы на большую!", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
                             }
                         }
                         if (checkCur == null)
@@ -312,14 +313,15 @@ namespace MNPZ
                             else
                             {
                                 var valueIn = inputCost * checkCur.CurInAmount;
-                                if (valueIn > outputCost)
+                                var valueWont = outputCost / checkCur.CurInAmount;
+                                if (inputCost < valueWont)
                                 {
                                     message = "Недостаточно средств для обмена!";
                                 }
                                 else
                                 {
-                                    ostatok = outputCost - valueIn;
-                                    message = "Обмен возможен, сдача будет равна: " + ostatok.ToString();
+                                    ostatok = inputCost - valueWont;
+                                    message = "Обмен возможен, сдача будет равна: " + Math.Round(ostatok, 2).ToString(); 
                                 }
                             }
                         }
@@ -333,13 +335,13 @@ namespace MNPZ
                             else
                             {
                                 ostatok = inputCost - valueIn;
-                                message = "Обмен возможен, сдача будет равна: " + ostatok.ToString();
+                                message = "Обмен возможен, сдача будет равна: " + Math.Round(ostatok, 2).ToString(); 
                             }
                         }
                     }
                     if (ostatok > 0)
                     {
-                        freeMoney.Text = ostatok.ToString();
+                        freeMoney.Text = Math.Round(ostatok, 2).ToString();
                     }
                 }
             }

@@ -1,4 +1,5 @@
 ﻿using MNPZ.DAL.Models;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
@@ -67,6 +68,34 @@ namespace MNPZ.DAL.Repositories
             }
 
             return result;
+        }
+
+        public bool TryDeleteUser(int id)
+        {
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                string query = "DELETE FROM [User] WHERE Id = @ID";
+
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@ID", id);
+
+                    try
+                    {
+                        connection.Open();
+
+                        int rowsAffected = command.ExecuteNonQuery();
+
+                        return rowsAffected > 0;
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("Ошибка при удалении записи: " + ex.Message);
+                        return false;
+                    }
+                    finally { connection.Close(); }
+                }
+            }
         }
 
         public List<User> SelectAllUsers()

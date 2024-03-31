@@ -21,13 +21,13 @@ namespace MNPZ
             var user = _userRepository.SelectUserBy(true, login.Text);
             if (user == null)
             {
-                MessageBox.Show("Неправильный логин или пароль");
+                MessageBox.Show("Неправильный логин или пароль", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             else
             {
                 if (user.Password != pass.Text)
                 {
-                    MessageBox.Show("Неправильный логин или пароль");
+                    MessageBox.Show("Неправильный логин или пароль", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
                 else
                 {

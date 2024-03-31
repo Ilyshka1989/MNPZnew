@@ -48,7 +48,7 @@
             this.label6 = new System.Windows.Forms.Label();
             this.Login = new System.Windows.Forms.TextBox();
             this.Password = new System.Windows.Forms.TextBox();
-            this.Name = new System.Windows.Forms.TextBox();
+            this.Namee = new System.Windows.Forms.TextBox();
             this.label5 = new System.Windows.Forms.Label();
             this.panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
@@ -153,11 +153,13 @@
             // 
             this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dataGridView1.Location = new System.Drawing.Point(11, 11);
-            this.dataGridView1.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.dataGridView1.Margin = new System.Windows.Forms.Padding(4);
             this.dataGridView1.Name = "dataGridView1";
             this.dataGridView1.RowHeadersWidth = 51;
             this.dataGridView1.Size = new System.Drawing.Size(1076, 358);
             this.dataGridView1.TabIndex = 1;
+            this.dataGridView1.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView1_CellClick);
+            this.dataGridView1.SelectionChanged += new System.EventHandler(this.dataGridView1_SelectionChanged);
             // 
             // panel3
             // 
@@ -171,7 +173,7 @@
             this.panel3.Controls.Add(this.label6);
             this.panel3.Controls.Add(this.Login);
             this.panel3.Controls.Add(this.Password);
-            this.panel3.Controls.Add(this.Name);
+            this.panel3.Controls.Add(this.Namee);
             this.panel3.Controls.Add(this.label5);
             this.panel3.Location = new System.Drawing.Point(335, 0);
             this.panel3.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
@@ -183,7 +185,7 @@
             // 
             this.isOperator.AutoSize = true;
             this.isOperator.Location = new System.Drawing.Point(764, 95);
-            this.isOperator.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.isOperator.Margin = new System.Windows.Forms.Padding(4);
             this.isOperator.Name = "isOperator";
             this.isOperator.Size = new System.Drawing.Size(129, 20);
             this.isOperator.TabIndex = 19;
@@ -271,14 +273,14 @@
             this.Password.Size = new System.Drawing.Size(159, 22);
             this.Password.TabIndex = 10;
             // 
-            // Name
+            // Namee
             // 
-            this.Name.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.Name.Location = new System.Drawing.Point(73, 91);
-            this.Name.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
-            this.Name.Name = "Name";
-            this.Name.Size = new System.Drawing.Size(159, 22);
-            this.Name.TabIndex = 9;
+            this.Namee.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.Namee.Location = new System.Drawing.Point(73, 91);
+            this.Namee.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.Namee.Name = "Namee";
+            this.Namee.Size = new System.Drawing.Size(159, 22);
+            this.Namee.TabIndex = 9;
             // 
             // label5
             // 
@@ -299,6 +301,7 @@
             this.Controls.Add(this.panel3);
             this.Controls.Add(this.panel1);
             this.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.Name = "AdminPage";
             this.Text = "Администратор";
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
@@ -326,7 +329,7 @@
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.TextBox Login;
         private System.Windows.Forms.TextBox Password;
-        private System.Windows.Forms.TextBox Name;
+        private System.Windows.Forms.TextBox Namee;
         private System.Windows.Forms.Button button3;
         private System.Windows.Forms.Button button2;
         private System.Windows.Forms.Button DeleteUser;

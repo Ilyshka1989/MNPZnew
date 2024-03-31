@@ -149,5 +149,33 @@ namespace MNPZ.DAL.Repositories
             return result;
         }
         #endregion
+
+        public bool TryDelereRate(int id)
+        {
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                string query = "DELETE FROM [Rates] WHERE Id = @ID";
+
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@ID", id);
+
+                    try
+                    {
+                        connection.Open();
+
+                        int rowsAffected = command.ExecuteNonQuery();
+
+                        return rowsAffected > 0;
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("Ошибка при удалении записи: " + ex.Message);
+                        return false;
+                    }
+                    finally { connection.Close(); }
+                }
+            }
+        }
     }
 }

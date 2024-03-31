@@ -74,7 +74,26 @@ namespace MNPZ
         }
         private void button1_Click(object sender, EventArgs e)
         {
-            MessageBox.Show("Курсы валют удалены");
+            if (dataGridView1.SelectedRows.Count > 0)
+            {
+                int idToDelete = Convert.ToInt32(dataGridView1.SelectedRows[0].Cells["Id"].Value);
+
+                bool success = _rateRepository.TryDelereRate(idToDelete);
+
+                if (success)
+                {
+                    MessageBox.Show("Запись успешно удалена!");
+                }
+                else
+                {
+                    MessageBox.Show("Не удалось найти запись с указанным ID или произошла ошибка при удалении.", "Ошибка", MessageBoxButtons.OKCancel);
+                }
+            }
+            else
+            {
+                MessageBox.Show("Выберите запись для удаления.");
+            }
+            DisplayRates();
         }
 
         private void label5_Click(object sender, EventArgs e)
@@ -91,14 +110,15 @@ namespace MNPZ
             if (textBox1.Text.Length < 1 || textBox2.Text.Length < 1)
             {
 
-                MessageBox.Show("Введены не все значения!");
+                MessageBox.Show("Введены не все значения!", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-            else if (!decimal.TryParse(textBox1.Text.Replace(',', '.'), out var inAmount) ||
-                     !decimal.TryParse(textBox2.Text.Replace(',', '.'), out var outAmount) ||
+
+            else if (!decimal.TryParse(textBox1.Text.Replace('.', ','), out var inAmount) ||
+                     !decimal.TryParse(textBox2.Text.Replace('.', ','), out var outAmount) ||
                 !Enum.TryParse<Currency>(comboBox1.SelectedValue.ToString(), out var combo1) ||
                 !Enum.TryParse<Currency>(comboBox2.SelectedValue.ToString(), out var combo2))
             {
-                MessageBox.Show("Неверный ввод");
+                MessageBox.Show("Неверный ввод", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             else
             {
@@ -265,13 +285,13 @@ namespace MNPZ
                         }
                         else if (combo2 == (Currency.EUR))
                         {
-                            result[0] = Convert.ToDecimal(first.EUR_in);
-                            result[1] = Convert.ToDecimal(first.EUR_out);
+                            result[0] = Convert.ToDecimal(first.EUR_in.Replace('.', ','));
+                            result[1] = Convert.ToDecimal(first.EUR_out.Replace('.', ','));
                         }
                         else if (combo2 == (Currency.RUB))
                         {
-                            result[0] = Convert.ToDecimal(first.RUB_in);
-                            result[1] = Convert.ToDecimal(first.RUB_out);
+                            result[0] = Convert.ToDecimal(first.RUB_in.Replace('.', ','));
+                            result[1] = Convert.ToDecimal(first.RUB_out.Replace('.', ','));
                         }
                     }
                     else if (combo1 == (Currency.USD))
@@ -283,8 +303,8 @@ namespace MNPZ
                         }
                         else if (combo2 == (Currency.EUR))
                         {
-                            result[0] = Convert.ToDecimal(first.USD_EUR_in);
-                            result[1] = Convert.ToDecimal(first.USD_EUR_out);
+                            result[0] = Convert.ToDecimal(first.USD_EUR_in.Replace('.', ','));
+                            result[1] = Convert.ToDecimal(first.USD_EUR_out.Replace('.', ','));
                         }
                         else if (combo2 == (Currency.RUB))
                         {
@@ -296,36 +316,36 @@ namespace MNPZ
                     {
                         if (combo2 == (Currency.BYN))
                         {
-                            result[0] = Convert.ToDecimal(first.EUR_in);
-                            result[1] = Convert.ToDecimal(first.EUR_out);
+                            result[0] = Convert.ToDecimal(first.EUR_in.Replace('.', ','));
+                            result[1] = Convert.ToDecimal(first.EUR_out.Replace('.', ','));
                         }
                         else if (combo2 == (Currency.USD))
                         {
-                            result[0] = Convert.ToDecimal(first.USD_EUR_in);
-                            result[1] = Convert.ToDecimal(first.USD_EUR_out);
+                            result[0] = Convert.ToDecimal(first.USD_EUR_in.Replace('.', ','));
+                            result[1] = Convert.ToDecimal(first.USD_EUR_out.Replace('.', ','));
                         }
                         else if (combo2 == (Currency.RUB))
                         {
-                            result[0] = Convert.ToDecimal(first.RUB_EUR_in);
-                            result[1] = Convert.ToDecimal(first.RUB_EUR_out);
+                            result[0] = Convert.ToDecimal(first.RUB_EUR_in.Replace('.', ','));
+                            result[1] = Convert.ToDecimal(first.RUB_EUR_out.Replace('.', ','));
                         }
                     }
                     else if (combo1 == (Currency.RUB))
                     {
                         if (combo2 == (Currency.BYN))
                         {
-                            result[0] = Convert.ToDecimal(first.RUB_in);
-                            result[1] = Convert.ToDecimal(first.RUB_out);
+                            result[0] = Convert.ToDecimal(first.RUB_in.Replace('.', ','));
+                            result[1] = Convert.ToDecimal(first.RUB_out.Replace('.', ','));
                         }
                         else if (combo2 == (Currency.EUR))
                         {
-                            result[0] = Convert.ToDecimal(first.RUB_EUR_in);
-                            result[1] = Convert.ToDecimal(first.RUB_EUR_out);
+                            result[0] = Convert.ToDecimal(first.RUB_EUR_in.Replace('.', ','));
+                            result[1] = Convert.ToDecimal(first.RUB_EUR_out.Replace('.', ','));
                         }
                         else if (combo2 == (Currency.USD))
                         {
-                            result[0] = Convert.ToDecimal(first.USD_RUB_in);
-                            result[1] = Convert.ToDecimal(first.USD_RUB_out);
+                            result[0] = Convert.ToDecimal(first.USD_RUB_in.Replace('.', ','));
+                            result[1] = Convert.ToDecimal(first.USD_RUB_out.Replace('.', ','));
                         }
                     }
                 }

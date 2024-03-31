@@ -25,7 +25,7 @@ namespace MNPZ
         private void Reset()
         {
             isOperator.Enabled = false;
-            Name.Text = "";
+            Namee.Text = "";
             Login.Text = "";
             Password.Text = "";
         }
@@ -50,21 +50,21 @@ namespace MNPZ
 
         private void button2_Click(object sender, EventArgs e)
         {
-            if (Name.Text == "")
+            if (Namee.Text == "")
             {
-                MessageBox.Show("Не указано имя пользователя!");
+                MessageBox.Show("Не указано имя пользователя!", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             else if (Login.Text == "")
             {
-                MessageBox.Show("Не указан логин пользователя!");
+                MessageBox.Show("Не указан логин пользователя!", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             else if (Password.Text == "")
             {
-                MessageBox.Show("Не указан пароль!");
+                MessageBox.Show("Не указан пароль!", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             else
             {
-                var insertUser = _userRepository.InsertUser(Login.Text, Name.Text, Password.Text, isOperator.Checked);
+                var insertUser = _userRepository.InsertUser(Login.Text, Namee.Text, Password.Text, isOperator.Checked);
 
                 MessageBox.Show(insertUser.Message);
 
@@ -77,22 +77,26 @@ namespace MNPZ
         int UserId = 0;
         private void OperatorsGDV_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
-            UserId = Convert.ToInt32(dataGridView1.SelectedRows[0].Cells[0].Value.ToString());
-            Name.Text = dataGridView1.SelectedRows[0].Cells[1].Value.ToString();
-            Login.Text = dataGridView1.SelectedRows[0].Cells[2].Value.ToString();
-            Password.Text = dataGridView1.SelectedRows[0].Cells[3].Value.ToString();
+            
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
             if (UserId == 0)
             {
-                MessageBox.Show("Выбирете объект");
+                MessageBox.Show("Выберете объект");
             }
             else
             {
-                var deleteUser = _userRepository.DeleteUserById(UserId);
-                MessageBox.Show(deleteUser.Message);
+                if (_userRepository.TryDeleteUser(UserId))
+                {
+                    MessageBox.Show("Пользователь удален");
+                }
+                else
+                {
+                    MessageBox.Show("Не удалось удалить пользователя", "Ошибка", MessageBoxButtons.OK);
+                }
+
                 DisplayUser();
                 Reset();
             }
@@ -100,13 +104,13 @@ namespace MNPZ
 
         private void button3_Click(object sender, EventArgs e)
         {
-            if (Name.Text == "" || Login.Text == "" || Password.Text == "")
+            if (Namee.Text == "" || Login.Text == "" || Password.Text == "")
             {
                 MessageBox.Show("Информация отсуствует");
             }
             else
             {
-                var deleteUser = _userRepository.UpdateUserById(UserId, Login.Text, Name.Text, Password.Text, isOperator.Checked);
+                var deleteUser = _userRepository.UpdateUserById(UserId, Login.Text, Namee.Text, Password.Text, isOperator.Checked);
                 MessageBox.Show(deleteUser.Message);
                 DisplayUser();
                 Reset();
@@ -125,6 +129,22 @@ namespace MNPZ
             LoginPage obj = new LoginPage();
             obj.Show();
             this.Hide();
+        }
+
+        private void dataGridView1_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            
+        }
+
+        private void dataGridView1_SelectionChanged(object sender, EventArgs e)
+        {
+            if (dataGridView1.SelectedRows.Count > 0)
+            {
+                UserId = Convert.ToInt32(dataGridView1.SelectedRows[0].Cells[0].Value.ToString());
+                Namee.Text = dataGridView1.SelectedRows[0].Cells[1].Value.ToString();
+                Login.Text = dataGridView1.SelectedRows[0].Cells[2].Value.ToString();
+                Password.Text = dataGridView1.SelectedRows[0].Cells[3].Value.ToString();
+            }
         }
     }
 }
